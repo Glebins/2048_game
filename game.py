@@ -1,15 +1,14 @@
 import random
 import copy
 
+
 class Game2048:
-    def __init__(self):
-        self.tiles = None
-        self.score_label = None
+    def __init__(self, grid_size):
         self.prev_grid = None
         self.prev_score = None
         self.is_game_over = False
 
-        self.grid_size = 4
+        self.grid_size = grid_size
         self.grid = [[0] * self.grid_size for _ in range(self.grid_size)]
         self.score = 0
 
@@ -22,15 +21,6 @@ class Game2048:
             row, col = random.choice(empty_cells)
             self.grid[row][col] = 2 if random.random() < 0.9 else 4
 
-    def update_display(self):
-        for i in range(self.grid_size):
-            for j in range(self.grid_size):
-                value = self.grid[i][j]
-                text = str(value) if value != 0 else ""
-                self.tiles[i][j].config(text=text, bg=self.get_tile_color(value))
-
-        self.score_label.config(text=f"Score: {self.score}")
-
     def do_move(self, direction):
         if direction not in ['Up', 'Down', 'Left', 'Right']:
             return
@@ -41,18 +31,25 @@ class Game2048:
 
         if self.grid != self.prev_grid:
             self.place_random_tile()
+        else:
+            self.score = self.prev_score
+
         if self.test_if_the_game_over():
             self.is_game_over = True
 
     def test_if_the_game_over(self):
         now_grid = copy.deepcopy(self.grid)
+        current_score = self.score
 
         for it in ['Up', 'Down', 'Left', 'Right']:
             self.grid = now_grid
             self.move_tiles(it)
             if self.grid != now_grid:
                 self.grid = now_grid
+                self.score = current_score
                 return False
+
+        self.score = current_score
         return True
 
     def move_tiles(self, direction):
@@ -107,34 +104,6 @@ class Game2048:
                 else:
                     prev_number = self.grid[i][j]
                     j -= 1
-
-                # if j > 0 and self.grid[i][j] == self.grid[i][j - 1] and self.grid[i][j] != 0:
-                #     self.grid[i][j] *= 2
-                #     self.score += self.grid[i][j]
-                #     self.grid[i][j - 1] = 0
-                #
-                #     if last_space > j:
-                #         self.grid[i][last_space] = self.grid[i][j]
-                #         self.grid[i][j] = 0
-                #         last_space -= 1
-                #     else:
-                #         last_space = j - 1
-                #
-                #     was_merger = True
-                #
-                # if last_space == -1:
-                #     j -= 1
-                #     continue
-                #
-                # if self.grid[i][last_space] == 0 and self.grid[i][j] != 0 and last_space > j:
-                #     self.grid[i][last_space] = self.grid[i][j]
-                #     self.grid[i][j] = 0
-                #     last_space -= 1
-                #
-                # if was_merger:
-                #     j -= 2
-                # else:
-                #     j -= 1
 
     def define_position_of_merged_tile(self, i, j):
         for x in range(j + 1, self.grid_size):

@@ -38,4 +38,3 @@ class Genetics:
             if gs != gt:
                 fitness += 1
         return fitness
-

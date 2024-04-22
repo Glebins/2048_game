@@ -26,4 +26,4 @@ class NeuralNetwork:
         hidden_layer = self.relu(input_layer @ self.weights_0)
         output_layer = self.linear(hidden_layer @ self.weights_1)
 
-        return np.argmax(input_layer)
+        return np.argmax(output_layer)
