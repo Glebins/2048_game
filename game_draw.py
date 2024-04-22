@@ -1,17 +1,39 @@
+import tkinter as tk
 import random
 import copy
 
-class Game2048:
-    def __init__(self):
+
+class DrawGame2048:
+    def __init__(self, window):
         self.tiles = None
         self.score_label = None
         self.prev_grid = None
         self.prev_score = None
-        self.is_game_over = False
+
+        self.window = window
+        self.window.title("2048 Game")
+        self.window.bind("<Key>", self.key_pressed)
 
         self.grid_size = 4
         self.grid = [[0] * self.grid_size for _ in range(self.grid_size)]
         self.score = 0
+
+        self.create_widgets()
+        self.place_random_tile()
+        self.update_display()
+
+    def create_widgets(self):
+        self.score_label = tk.Label(self.window, text="Score: 0", font=("Helvetica", 16))
+        self.score_label.grid(row=0, column=0, columnspan=self.grid_size)
+
+        self.tiles = []
+        for i in range(self.grid_size):
+            row = []
+            for j in range(self.grid_size):
+                tile = tk.Label(self.window, text="", font=("Helvetica", 24), width=6, height=3, relief="raised")
+                tile.grid(row=i + 1, column=j)
+                row.append(tile)
+            self.tiles.append(row)
 
     def place_tile(self, x, y, val):
         self.grid[x][y] = val
@@ -31,20 +53,42 @@ class Game2048:
 
         self.score_label.config(text=f"Score: {self.score}")
 
-    def do_move(self, direction):
-        if direction not in ['Up', 'Down', 'Left', 'Right']:
-            return
+    def get_tile_color(self, value):
+        colors = {
+            2: "#eee4da",
+            4: "#ede0c8",
+            8: "#f2b179",
+            16: "#f59563",
+            32: "#f67c5f",
+            64: "#f65e3b",
+            128: "#edcf72",
+            256: "#edcc61",
+            512: "#edc850",
+            1024: "#edc53f",
+            2048: "#edc22e"
+        }
+        return colors.get(value, "#cdc1b4")
 
-        self.prev_grid = copy.deepcopy(self.grid)
-        self.prev_score = self.score
-        self.move_tiles(direction)
+    def key_pressed(self, event):
+        key = event.keysym
+        if key in ['Up', 'Down', 'Left', 'Right']:
+            self.prev_grid = copy.deepcopy(self.grid)
+            self.prev_score = self.score
+            self.move_tiles(key)
+            if self.grid != self.prev_grid:
+                self.place_random_tile()
+                self.update_display()
+            if self.is_the_end():
+                print("Game over")
+        elif key == 'b':
+            if self.prev_grid is not None:
+                self.grid = self.prev_grid
+                self.score = self.prev_score
+            self.update_display()
+        elif key == 'z':
+            self.window.destroy()
 
-        if self.grid != self.prev_grid:
-            self.place_random_tile()
-        if self.test_if_the_game_over():
-            self.is_game_over = True
-
-    def test_if_the_game_over(self):
+    def is_the_end(self):
         now_grid = copy.deepcopy(self.grid)
 
         for it in ['Up', 'Down', 'Left', 'Right']:
