@@ -3,7 +3,7 @@ import copy
 
 
 class Game2048:
-    def __init__(self, grid_size):
+    def __init__(self, grid_size=4):
         self.prev_grid = None
         self.prev_score = None
         self.is_game_over = False
