@@ -1,5 +1,4 @@
 from neural_network_genetics import IndividualNN
-from neural_network import NeuralNetwork
 import random
 
 
@@ -21,10 +20,15 @@ class EvolutionNN:
             # individual_weights = IndividualNN.create_genome(NeuralNetwork, self.grid_size)
             # self.population.append(IndividualNN(self.grid_size, weights=individual_weights))
 
+
+    def evaluate_population(self):
+        self.run_simulations()
+        # self.population =
+
     def generation_pass(self):
         self.run_simulations()
-        self.population = sorted(self.population, key=lambda x: x.score)
-        print([x.score for x in self.population])
+        self.population = sorted(self.population, key=lambda x: -x.score)
+        # print([x.score for x in self.population])
 
         new_generation = []
         new_generation.extend(self.population[:int(self.population_size * self.elitism_coefficient)])
@@ -40,7 +44,7 @@ class EvolutionNN:
 
     def run_simulations(self):
         for p in self.population:
-            print(p.simulate_game())
+            p.simulate_game()
 
     def print_generation_info(self):
         print(f"Generation {self.generation}, String = {''.join(self.population[0].chromosome)}, "

@@ -40,34 +40,11 @@ class IndividualNN:
         return np.array(child_chromosomes)
 
     def crossover(self, parent_2):
-        # child_chromosomes_0 = np.zeros_like(self.chromosome.weights_0)
-        # child_chromosomes_1 = np.zeros_like(self.chromosome.weights_1)
-        # child_chromosomes = [child_chromosomes_0, child_chromosomes_1]
-        # weights_parent_1 = [self.chromosome.weights_0, self.chromosome.weights_1]
-        # weights_parent_2 = [parent_2.chromosome.weights_0, parent_2.chromosome.weights_1]
-
-        # it = np.nditer(weights_parent_1, flags=['multi_index'])
-        # shape = [self.chromosome.weights_0]
-        # todo FUCKK
-
         child_chromosomes_0 = self.mate_one_array(self.chromosome.weights_0, parent_2.chromosome.weights_0)
         child_chromosomes_1 = self.mate_one_array(self.chromosome.weights_1, parent_2.chromosome.weights_1)
 
         child_chromosomes_0 = child_chromosomes_0.reshape(self.chromosome.weights_0.shape)
         child_chromosomes_1 = child_chromosomes_1.reshape(self.chromosome.weights_1.shape)
-
-        # for gp1, gp2 in zip(self.chromosome.weights_1, parent_2.chromosome.weights_1):
-        #     prob = random.random()
-        #
-        #     if prob < self.border_prob:
-        #         child_chromosomes_1 = np.append(child_chromosomes_1, gp1)
-        #     elif self.border_prob <= prob < 2 * self.border_prob:
-        #         child_chromosomes_1 = np.append(child_chromosomes_1, gp2)
-        #     else:
-        #         child_chromosomes_1 = np.append(child_chromosomes_1, self.get_random_gene())
-        #
-        # child_chromosomes_0 = child_chromosomes_0.reshape(self.chromosome.weights_0.shape)
-        # child_chromosomes_1 = child_chromosomes_1.reshape(self.chromosome.weights_1.shape)
 
         child_chromosomes = [child_chromosomes_0, child_chromosomes_1]
 
@@ -75,6 +52,7 @@ class IndividualNN:
 
     def simulate_game(self):
         game_engine = Game2048(self.grid_size)
+        game_engine.place_random_tile()
 
         while True:
             game_engine.do_move(self.chromosome.get_direction(self.chromosome.forward(game_engine.grid)))

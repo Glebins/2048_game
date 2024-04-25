@@ -10,6 +10,8 @@ grid_size = 4
 game_evolution = EvolutionNN(grid_size)
 
 game_evolution.generation_pass()
+game_evolution.generation_pass()
+game_evolution.generation_pass()
 
 print(game_evolution.population[0].score)
 
