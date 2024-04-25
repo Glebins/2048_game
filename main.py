@@ -17,9 +17,11 @@ print(game_evolution.population[0].score)
 genes = ['Right', 'Left', 'Up', 'Down']
 
 root = tk.Tk()
-visual_game = DrawGame2048(root, grid_size)
+# visual_game = DrawGame2048(root, grid_size)
 
-game_engine = visual_game.Game
+# game_engine = visual_game.Game
+game_engine = Game2048(grid_size)
+game_engine.place_random_tile()
 nn_game = NeuralNetwork(grid_size)
 
 i = 0
@@ -28,13 +30,13 @@ while True:
     game_engine.do_move(nn_game.get_direction(nn_game.forward(game_engine.grid)))
     print(i, game_engine.grid)
 
-    if game_engine.test_if_the_game_over():
+    if game_engine.test_if_the_game_over() or game_engine.prev_grid == game_engine.grid:
         print(f"Exit at {i} with a score of {game_engine.score}")
         break
 
-    visual_game.update_display()
-    root.update_idletasks()
-    root.update()
+    # visual_game.update_display()
+    # root.update_idletasks()
+    # root.update()
 
     i += 1
-    time.sleep(0.2) '''
+    # time.sleep(0.2) '''

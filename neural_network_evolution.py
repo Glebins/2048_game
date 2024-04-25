@@ -22,7 +22,9 @@ class EvolutionNN:
             # self.population.append(IndividualNN(self.grid_size, weights=individual_weights))
 
     def generation_pass(self):
-        self.population = sorted(self.population, key=lambda x: x.simulate_game())
+        self.run_simulations()
+        self.population = sorted(self.population, key=lambda x: x.score)
+        print([x.score for x in self.population])
 
         new_generation = []
         new_generation.extend(self.population[:int(self.population_size * self.elitism_coefficient)])
@@ -36,7 +38,11 @@ class EvolutionNN:
         self.population = new_generation
         self.generation += 1
 
+    def run_simulations(self):
+        for p in self.population:
+            print(p.simulate_game())
+
     def print_generation_info(self):
         print(f"Generation {self.generation}, String = {''.join(self.population[0].chromosome)}, "
-              f"Score = {self.population[0].simulate_game()}")
+              f"Score = {self.population[0].score}")
         # np.savetxt("test_weights.txt", self.population[0].chromosome)
