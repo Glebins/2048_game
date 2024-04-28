@@ -4,7 +4,7 @@ import numpy as np
 class NeuralNetwork:
     def __init__(self, grid_size=4, weights=None):
         self.input_layer_size = grid_size ** 2
-        self.hidden_layer_size = 18
+        self.hidden_layer_size = 40
         self.output_layer_size = 4
 
         if weights is None:
@@ -26,12 +26,19 @@ class NeuralNetwork:
     def linear(cls, x):
         return x
 
+    @classmethod
+    def handle_input(cls, input_layer):
+        input_layer[input_layer == 0] += 1
+        input_layer = np.log2(input_layer)
+        input_layer /= np.max(input_layer)
+
     def forward(self, input_layer):
         input_layer = np.array([input_layer]).flatten()
+        self.handle_input(input_layer)
         hidden_layer = self.relu(input_layer @ self.weights_0)
         output_layer = self.linear(hidden_layer @ self.weights_1)
 
-        return np.argmax(output_layer)
+        return output_layer
 
     @classmethod
     def get_direction(cls, input_neuron_number):

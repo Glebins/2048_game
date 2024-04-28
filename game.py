@@ -115,3 +115,14 @@ class Game2048:
 
     def transpose(self):
         self.grid = [list(row) for row in zip(*self.grid)]
+
+    @classmethod
+    def simulate_random_game(cls, game):
+        genes = ['Right', 'Left', 'Up', 'Down']
+        game.place_random_tile()
+        while True:
+            game.do_move(random.choice(genes))
+
+            if game.test_if_the_game_over():
+                # print(game.grid)
+                return game.grid, game.score

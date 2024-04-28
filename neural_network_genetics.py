@@ -1,5 +1,4 @@
 import numpy as np
-import itertools
 import random
 
 from neural_network import NeuralNetwork
@@ -7,11 +6,11 @@ from game import Game2048
 
 
 class IndividualNN:
-    def __init__(self, grid_size, border_prob=0.45, weights=None):
+    def __init__(self, grid_size, mutation_coefficient, weights=None):
         self.grid_size = grid_size
         self.score = -1
         self.chromosome = NeuralNetwork(grid_size, weights)
-        self.border_prob = border_prob
+        self.mutation_coefficient = mutation_coefficient
 
     @classmethod
     def create_genome(cls, nn):
@@ -24,20 +23,34 @@ class IndividualNN:
     def get_random_gene(cls):
         return np.random.random()
 
-    def mate_one_array(self, parent_1_weights, parent_2_weights):
+    @classmethod
+    def mate_one_array(cls, parent_1_weights, parent_2_weights):
         child_chromosomes = []
 
-        for gp1, gp2 in zip(parent_1_weights.flatten(), parent_2_weights.flatten()):
+        crossover_point = np.random.randint(1, len(parent_1_weights))
+        prob = random.random()
+
+        for i, gp1, gp2 in zip(range(parent_1_weights.size), parent_1_weights.flatten(), parent_2_weights.flatten()):
+
             prob = random.random()
 
-            if prob < self.border_prob:
+            # if i < crossover_point:
+            #     child_chromosomes.append(gp1)
+            # else:
+            #     child_chromosomes.append(gp2)
+
+            if prob < 0.5:
                 child_chromosomes.append(gp1)
-            elif self.border_prob <= prob < 2 * self.border_prob:
-                child_chromosomes.append(gp2)
             else:
-                child_chromosomes.append(self.get_random_gene())
+                child_chromosomes.append(gp2)
 
         return np.array(child_chromosomes)
+
+    def mutate_one_array(self, child_weights):
+        # mutated_array = np.copy(child_weights)
+        mutation_mask = np.random.rand(*child_weights.shape) < self.mutation_coefficient
+        child_weights[mutation_mask] = np.random.rand(*child_weights.shape)[mutation_mask]
+        return child_weights
 
     def crossover(self, parent_2):
         child_chromosomes_0 = self.mate_one_array(self.chromosome.weights_0, parent_2.chromosome.weights_0)
@@ -48,16 +61,28 @@ class IndividualNN:
 
         child_chromosomes = [child_chromosomes_0, child_chromosomes_1]
 
-        return IndividualNN(self.grid_size, self.border_prob, child_chromosomes)
+        return IndividualNN(self.grid_size, self.mutation_coefficient, weights=child_chromosomes)
+
+    def mutate(self):
+        self.chromosome.weights_0 = self.mutate_one_array(self.chromosome.weights_0)
+        self.chromosome.weights_1 = self.mutate_one_array(self.chromosome.weights_1)
 
     def simulate_game(self):
         game_engine = Game2048(self.grid_size)
         game_engine.place_random_tile()
 
         while True:
-            game_engine.do_move(self.chromosome.get_direction(self.chromosome.forward(game_engine.grid)))
+            moves = self.chromosome.forward(game_engine.grid)
+            moves = np.argsort(-moves)
 
-            if game_engine.test_if_the_game_over() or game_engine.prev_grid == game_engine.grid:
+            move_i = 0
+            game_engine.do_move(self.chromosome.get_direction(moves[move_i]))
+
+            while game_engine.grid == game_engine.prev_grid:
+                move_i += 1
+                game_engine.do_move(self.chromosome.get_direction(moves[move_i]))
+
+            if game_engine.is_game_over:
                 score = game_engine.score
                 self.score = score
                 return score
