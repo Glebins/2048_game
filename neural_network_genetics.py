@@ -34,15 +34,15 @@ class IndividualNN:
 
             prob = random.random()
 
-            # if i < crossover_point:
-            #     child_chromosomes.append(gp1)
-            # else:
-            #     child_chromosomes.append(gp2)
-
-            if prob < 0.5:
+            if i < crossover_point:
                 child_chromosomes.append(gp1)
             else:
                 child_chromosomes.append(gp2)
+
+            # if prob < 0.5:
+            #     child_chromosomes.append(gp1)
+            # else:
+            #     child_chromosomes.append(gp2)
 
         return np.array(child_chromosomes)
 

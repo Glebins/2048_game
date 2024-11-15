@@ -4,12 +4,12 @@ import numpy as np
 class NeuralNetwork:
     def __init__(self, grid_size=4, weights=None):
         self.input_layer_size = grid_size ** 2
-        self.hidden_layer_size = 40
+        self.hidden_layer_size = 50
         self.output_layer_size = 4
 
         if weights is None:
-            self.weights_0 = np.random.random((self.input_layer_size, self.hidden_layer_size))
-            self.weights_1 = np.random.random((self.hidden_layer_size, self.output_layer_size))
+            self.weights_0 = 2 * np.random.random((self.input_layer_size, self.hidden_layer_size)) - 1
+            self.weights_1 = 2 * np.random.random((self.hidden_layer_size, self.output_layer_size)) - 1
         else:
             self.weights_0 = weights[0]
             self.weights_1 = weights[1]

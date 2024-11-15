@@ -1,78 +1,57 @@
 import time
-
-from game_draw import *
-import numpy as np
-from neural_network import NeuralNetwork
-from neural_network_genetics import IndividualNN
-from neural_network_evolution import EvolutionNN
 import tkinter as tk
 
-file_to_save = "weights.txt"
-grid_size = 4
-n = 500
+import numpy as np
+import torch
 
-game_evolution = EvolutionNN(grid_size, population_size=500, mating_coefficient=0.5, mutation_coefficient=0.1)
+from DQN import *
+from game_draw import *
 
-game_evolution.read_weights_from_file(file_to_save)
-game_evolution.evaluate_population()
+game = Game2048()
 
-for i in range(n):
-    game_evolution.evaluate_population()
+step = 0
+counter_bad_moves = 0
+game.init()
+state = game.get_state()
 
-    scores = []
-    for pop in game_evolution.population:
-        scores.append(pop.score)
-    print(sum(scores) / len(scores))
+model = DQN([0, 1, 2, 3], in_dim=16, gamma=1, lr=0.01)
 
-    game_evolution.print_scores_of_population()
-    game_evolution.get_offspring()
+amount_of_epochs = 100_000_000
 
-    if i % 100 == 0:
-        game_evolution.save_weights_into_file(file_to_save)
+for epoch in range(amount_of_epochs):
+    step += 1
+    action = model.action(torch.Tensor(state), 0.1)
 
-game_evolution.save_weights_into_file(file_to_save)
+    action_to_do = {0: 'Left', 1: 'Down', 2: 'Right', 3: 'Up'}
 
-# game_evolution.read_weights_from_file(file_to_save)
-# game_evolution.evaluate_population()
-#
-# scores = []
-# for i in game_evolution.population:
-#     scores.append(i.score)
-# print(sum(scores) / len(scores))
-#
-# game_evolution.print_scores_of_population()
+    prev_score = game.score
+    was_positions_changed = game.do_move(action_to_do[action])
+    new_state = game.get_state()
+    reward = game.score - prev_score
+    terminated = game.is_game_over
 
+    counter_bad_moves += int(not was_positions_changed)
 
-# genes = ['Right', 'Left', 'Up', 'Down']
-#
-# root = tk.Tk()
-# visual_game = DrawGame2048(root, grid_size)
-#
-# game_engine = visual_game.Game
-# game_engine.place_random_tile()
-# nn_game = game_evolution.population[0].chromosome
-#
-# i = 0
-#
-# while True:
-#     moves = nn_game.forward(game_engine.grid)
-#     moves = np.argsort(-moves)
-#
-#     move_i = 0
-#     game_engine.do_move(nn_game.get_direction(moves[move_i]))
-#
-#     while game_engine.grid == game_engine.prev_grid:
-#         move_i += 1
-#         game_engine.do_move(nn_game.get_direction(moves[move_i]))
-#
-#     if game_engine.is_game_over:
-#         score = game_engine.score
-#         print(f"Exit at {i} with a score of {game_engine.score}")
-#         break
-#
-#     visual_game.update_display()
-#     root.update_idletasks()
-#     root.update()
-#
-#     i += 1
-#     time.sleep(0.2)
+    if was_positions_changed:
+        counter_bad_moves = 0
+
+    # if not was_positions_changed:
+    #     reward = 0.9 * reward
+
+    truncated = counter_bad_moves >= 10
+
+    model.add_exp(state, action, reward, new_state, terminated)
+    state = new_state
+
+    if terminated or truncated:
+        game.init()
+        counter_bad_moves = 0
+
+    if step > 100:
+        model.update()
+
+    if step % 10_000 == 0:
+        test_rewards = model.test_2048(game, 100)
+        check_mean = sum(test_rewards) / len(test_rewards)
+        print(f"{step}: {check_mean}")
+

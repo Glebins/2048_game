@@ -1,6 +1,8 @@
 import random
 import copy
 
+import numpy as np
+
 
 class Game2048:
     def __init__(self, grid_size=4):
@@ -29,13 +31,29 @@ class Game2048:
         self.prev_score = self.score
         self.move_tiles(direction)
 
+        was_positions_changed = None
+
         if self.grid != self.prev_grid:
             self.place_random_tile()
+            was_positions_changed = True
         else:
             self.score = self.prev_score
+            was_positions_changed = False
 
         if self.test_if_the_game_over():
             self.is_game_over = True
+
+        return was_positions_changed
+
+    def clear(self):
+        self.__init__(self.grid_size)
+
+    def init(self):
+        self.clear()
+        self.place_random_tile()
+
+    def get_state(self):
+        return np.array(self.grid).flatten()
 
     def test_if_the_game_over(self):
         now_grid = copy.deepcopy(self.grid)

@@ -54,7 +54,7 @@ class EvolutionNN:
     def print_scores_of_population(self):
         print(f"{self.generation}: {[x.score for x in self.population]}")
 
-    def save_weights_into_file(self, file_to_save):
+    def save_weights_in_file(self, file_to_save):
         w0 = []
         w1 = []
 
