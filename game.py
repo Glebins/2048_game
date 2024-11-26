@@ -1,3 +1,4 @@
+import math
 import random
 import copy
 
@@ -23,15 +24,13 @@ class Game2048:
             row, col = random.choice(empty_cells)
             self.grid[row][col] = 2 if random.random() < 0.9 else 4
 
-    def do_move(self, direction):
+    def apply_move(self, direction):
         if direction not in ['Up', 'Down', 'Left', 'Right']:
             return
 
         self.prev_grid = copy.deepcopy(self.grid)
         self.prev_score = self.score
         self.move_tiles(direction)
-
-        was_positions_changed = None
 
         if self.grid != self.prev_grid:
             self.place_random_tile()
@@ -53,7 +52,15 @@ class Game2048:
         self.place_random_tile()
 
     def get_state(self):
-        return np.array(self.grid).flatten()
+        return self.grid
+
+    def set_state(self, new_grid):
+        self.grid = new_grid
+
+    def delete_move(self):
+        self.grid = self.prev_grid
+        self.score = self.prev_score
+        self.is_game_over = False
 
     def test_if_the_game_over(self):
         now_grid = copy.deepcopy(self.grid)
@@ -69,6 +76,29 @@ class Game2048:
 
         self.score = current_score
         return True
+
+    def get_legal_moves(self):
+        now_grid = copy.deepcopy(self.grid)
+        current_score = self.score
+
+        legal_moves = []
+
+        for it in ['Up', 'Down', 'Left', 'Right']:
+            self.grid = now_grid
+            self.move_tiles(it)
+            if self.grid != now_grid:
+                self.grid = now_grid
+                self.score = current_score
+                legal_moves.append(it)
+
+        self.score = current_score
+        return legal_moves
+
+    def is_terminal(self):
+        if self.test_if_the_game_over():
+            return True
+        else:
+            return False
 
     def move_tiles(self, direction):
         if direction == 'Up':
@@ -134,12 +164,60 @@ class Game2048:
     def transpose(self):
         self.grid = [list(row) for row in zip(*self.grid)]
 
+    def get_monotonicity(self):
+        mon_score = 0
+
+        for i in range(4):
+            for j in range(3):
+                if self.grid[i * 4 + j + 1] > self.grid[i * 4 + j]:
+                    mon_score += 1
+
+        for j in range(4):
+            for i in range(3):
+                if self.grid[(i + 1) * 4 + j] > self.grid[i * 4 + j]:
+                    mon_score += 1
+
+        return mon_score
+
+    def get_number_empty_cells(self):
+        empty_cells = 0
+        for i in self.grid:
+            if i == 0:
+                empty_cells += 1
+
+        return empty_cells
+
+    def get_smoothness(self):
+        smoothness = 0
+
+        for i, val in self.grid:
+            val = math.log2(val)
+
+            neighbors_positions = [i - 4, i - 1, i + 1, i + 4]
+
+            for potential_neighbor in neighbors_positions:
+                if potential_neighbor < 0:
+                    continue
+                neighbor_val = math.log2(self.grid[potential_neighbor])
+
+                smoothness -= abs(val - neighbor_val)
+
+        return smoothness
+
+
+    def evaluate(self):
+        mon_score = self.get_monotonicity()
+        empty_cells = self.get_number_empty_cells()
+        smoothness = self.get_smoothness()
+
+
+
     @classmethod
     def simulate_random_game(cls, game):
         genes = ['Right', 'Left', 'Up', 'Down']
         game.place_random_tile()
         while True:
-            game.do_move(random.choice(genes))
+            game.apply_move(random.choice(genes))
 
             if game.test_if_the_game_over():
                 # print(game.grid)

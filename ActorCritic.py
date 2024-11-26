@@ -23,47 +23,47 @@ class Actor(nn.Module):
 
     def __init__(self, input_size=3, output_size=2):
         super(Actor, self).__init__()
-        # self.linear = nn.Linear(input_size, 50)
+        self.linear = nn.Linear(input_size, 50)
         # self.hidden = nn.Linear(40, 32)
-        # self.actor = nn.Linear(50, output_size)
+        self.actor = nn.Linear(50, output_size)
 
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=2, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(in_channels=2, out_channels=4, kernel_size=3, stride=1, padding=1)
-
-        self.fc1 = nn.Linear(4 * 4 * 4, 32)
-        self.fc2 = nn.Linear(32, 16)
-        self.fc3 = nn.Linear(16, 4)
+        # self.conv1 = nn.Conv2d(in_channels=1, out_channels=2, kernel_size=3, stride=1, padding=1)
+        # self.conv2 = nn.Conv2d(in_channels=2, out_channels=4, kernel_size=3, stride=1, padding=1)
+        #
+        # self.fc1 = nn.Linear(4 * 4 * 4, 32)
+        # self.fc2 = nn.Linear(32, 16)
+        # self.fc3 = nn.Linear(16, 4)
 
     def forward(self, x):
         x[x == 0] += 1
         x = torch.log2(x)
         x /= torch.max(x)
 
-        # x = F.relu(self.linear(x))
+        x = F.relu(self.linear(x))
         # x = F.relu(self.hidden(x))
-        # proba = F.softmax(self.actor(x), dim=-1)
+        proba = F.softmax(self.actor(x), dim=-1)
 
-        if x.ndim == 1:
-            x = x.reshape(4, 4)
-        else:
-            x = x.reshape(-1, 4, 4)
-
-        if x.ndim == 2:
-            x = x[None, None, :]
-        elif x.ndim == 3:
-            x = x.reshape(x.shape[0], 1, x.shape[1], x.shape[2])
-        else:
-            raise ValueError(f"Strange x shape: {x.ndim} dimensions (should be 2 or 3), "
-                             f"shape = {x.shape}")
-
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-
-        x = x.reshape(x.shape[0], -1)
-
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        proba = F.softmax(self.fc3(x))
+        # if x.ndim == 1:
+        #     x = x.reshape(4, 4)
+        # else:
+        #     x = x.reshape(-1, 4, 4)
+        #
+        # if x.ndim == 2:
+        #     x = x[None, None, :]
+        # elif x.ndim == 3:
+        #     x = x.reshape(x.shape[0], 1, x.shape[1], x.shape[2])
+        # else:
+        #     raise ValueError(f"Strange x shape: {x.ndim} dimensions (should be 2 or 3), "
+        #                      f"shape = {x.shape}")
+        #
+        # x = F.relu(self.conv1(x))
+        # x = F.relu(self.conv2(x))
+        #
+        # x = x.reshape(x.shape[0], -1)
+        #
+        # x = F.relu(self.fc1(x))
+        # x = F.relu(self.fc2(x))
+        # proba = F.softmax(self.fc3(x))
 
         return proba
 
@@ -72,46 +72,46 @@ class Critic(nn.Module):
 
     def __init__(self, input_size=3):
         super(Critic, self).__init__()
-        # self.linear = nn.Linear(input_size, 50)
+        self.linear = nn.Linear(input_size, 50)
         # self.hidden_layer = nn.Linear(64, 32)
-        # self.critic = nn.Linear(50, 1)
+        self.critic = nn.Linear(50, 1)
 
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=2, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(in_channels=2, out_channels=4, kernel_size=3, stride=1, padding=1)
-
-        self.fc1 = nn.Linear(4 * 4 * 4, 32)
-        self.fc2 = nn.Linear(32, 16)
-        self.fc3 = nn.Linear(16, 1)
+        # self.conv1 = nn.Conv2d(in_channels=1, out_channels=2, kernel_size=3, stride=1, padding=1)
+        # self.conv2 = nn.Conv2d(in_channels=2, out_channels=4, kernel_size=3, stride=1, padding=1)
+        #
+        # self.fc1 = nn.Linear(4 * 4 * 4, 32)
+        # self.fc2 = nn.Linear(32, 16)
+        # self.fc3 = nn.Linear(16, 1)
 
     def forward(self, x):
         x[x == 0] += 1
         x = torch.log2(x)
 
-        # x = F.relu(self.linear(x.float()))
+        x = F.relu(self.linear(x.float()))
         # x = F.relu(self.hidden_layer(x))
-        # v_val = self.critic(x)
+        v_val = self.critic(x)
 
-        if x.ndim == 1:
-            x = x.reshape(4, 4)
-        else:
-            x = x.reshape(-1, 4, 4)
-
-        if x.ndim == 2:
-            x = x[None, None, :]
-        elif x.ndim == 3:
-            x = x.reshape(x.shape[0], 1, x.shape[1], x.shape[2])
-        else:
-            raise ValueError(f"Strange x shape: {x.ndim} dimensions (should be 2 or 3), "
-                             f"shape = {x.shape}")
-
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-
-        x = x.reshape(x.shape[0], -1)
-
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        v_val = self.fc3(x)
+        # if x.ndim == 1:
+        #     x = x.reshape(4, 4)
+        # else:
+        #     x = x.reshape(-1, 4, 4)
+        #
+        # if x.ndim == 2:
+        #     x = x[None, None, :]
+        # elif x.ndim == 3:
+        #     x = x.reshape(x.shape[0], 1, x.shape[1], x.shape[2])
+        # else:
+        #     raise ValueError(f"Strange x shape: {x.ndim} dimensions (should be 2 or 3), "
+        #                      f"shape = {x.shape}")
+        #
+        # x = F.relu(self.conv1(x))
+        # x = F.relu(self.conv2(x))
+        #
+        # x = x.reshape(x.shape[0], -1)
+        #
+        # x = F.relu(self.fc1(x))
+        # x = F.relu(self.fc2(x))
+        # v_val = self.fc3(x)
 
         return v_val
 
@@ -213,7 +213,9 @@ class Actor_Critic:
             game_copy.init()
             state = game_copy.get_state()
 
-            actions = self.actions_by_probability(torch.Tensor(state)).detach().numpy()[0]
+            states_debug = [state]
+
+            actions = self.actions_by_probability(torch.Tensor(state)).detach().numpy()
             action_to_do = {0: 'Left', 1: 'Down', 2: 'Right', 3: 'Up'}
 
             was_positions_changed = False
@@ -223,7 +225,7 @@ class Actor_Critic:
             total_reward = 0
 
             while not was_positions_changed:
-                was_positions_changed = game_copy.do_move(action_to_do[actions[i]])
+                was_positions_changed = game_copy.apply_move(action_to_do[actions[i]])
                 total_reward = game_copy.score - prev_score
                 terminated = game_copy.is_game_over
 
@@ -234,28 +236,32 @@ class Actor_Critic:
             number_of_steps.append(1)
 
             state = game_copy.get_state()
+            states_debug.append(state)
 
             while not terminated:
-                actions = self.actions_by_probability(torch.Tensor(state)).detach().numpy()[0]
+                actions = self.actions_by_probability(torch.Tensor(state)).detach().numpy()
 
                 was_positions_changed = False
                 i = 0
                 prev_score = game_copy.score
 
                 while not was_positions_changed:
-                    was_positions_changed = game_copy.do_move(action_to_do[actions[i]])
+                    was_positions_changed = game_copy.apply_move(action_to_do[actions[i]])
+
                     reward = game_copy.score - prev_score
 
                     if not was_positions_changed:
                         reward = penalty
 
-                    terminated = game_copy.is_game_over
                     total_reward += reward
                     i += 1
+
+                terminated = game_copy.test_if_the_game_over()
 
                 number_of_steps[rep] += 1
 
                 state = game_copy.get_state()
+                states_debug.append(state)
 
             number_of_steps[rep] -= 1
             rewards.append(total_reward)

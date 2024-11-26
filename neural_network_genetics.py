@@ -76,11 +76,11 @@ class IndividualNN:
             moves = np.argsort(-moves)
 
             move_i = 0
-            game_engine.do_move(self.chromosome.get_direction(moves[move_i]))
+            game_engine.apply_move(self.chromosome.get_direction(moves[move_i]))
 
             while game_engine.grid == game_engine.prev_grid:
                 move_i += 1
-                game_engine.do_move(self.chromosome.get_direction(moves[move_i]))
+                game_engine.apply_move(self.chromosome.get_direction(moves[move_i]))
 
             if game_engine.is_game_over:
                 score = game_engine.score

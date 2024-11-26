@@ -60,7 +60,7 @@ class DrawGame2048:
     def key_pressed(self, event):
         key = event.keysym
         if key in ['Up', 'Down', 'Left', 'Right']:
-            self.Game.do_move(key)
+            self.Game.apply_move(key)
             self.update_display()
         elif key == 'b':
             if self.Game.prev_grid is not None:

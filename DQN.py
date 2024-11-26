@@ -121,7 +121,7 @@ class DQN:
             total_reward = 0
 
             while not was_positions_changed:
-                was_positions_changed = game_copy.do_move(action_to_do[actions[i]])
+                was_positions_changed = game_copy.apply_move(action_to_do[actions[i]])
                 total_reward = game_copy.score - prev_score
                 terminated = game_copy.is_game_over
 
@@ -141,7 +141,7 @@ class DQN:
                 prev_score = game_copy.score
 
                 while not was_positions_changed:
-                    was_positions_changed = game_copy.do_move(action_to_do[actions[i]])
+                    was_positions_changed = game_copy.apply_move(action_to_do[actions[i]])
                     reward = game_copy.score - prev_score
 
                     if not was_positions_changed:
