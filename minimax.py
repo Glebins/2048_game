@@ -24,12 +24,13 @@ class MinimaxTree:
         game_current = copy.deepcopy(self.game)
         game_current.set_state(node.state)
 
-        if game_current.is_terminal() or depth == 0:
+        legal_moves = game_current.get_legal_moves()
+
+        if len(legal_moves) == 0 or depth == 0:
             node.score = game_current.evaluate()
-            node.score_avg = node.score
+            # node.score_avg = node.score
             return
 
-        legal_moves = game_current.get_legal_moves()
         best_score = float('-inf') if maximizing_player else float('inf')
         for move in legal_moves:
             game_current.apply_move(move)
@@ -37,7 +38,7 @@ class MinimaxTree:
             child_node.move = move
             node.children.append(child_node)
             self.build_tree(child_node, depth - 1, not maximizing_player)
-            game_current.delete_move(move)
+            game_current.delete_move()
 
             if maximizing_player:
                 if child_node.score > best_score:
@@ -47,7 +48,7 @@ class MinimaxTree:
                     best_score = child_node.score
 
         node.score = best_score
-        node.score_avg = round(np.array([child.score for child in node.children]).mean(), 3)
+        # node.score_avg = round(np.array([child.score for child in node.children]).mean(), 3)
 
     def get_best_move(self, node: MinimaxNode, is_maximizing_player):
         node = self.root if node is None else node
@@ -63,12 +64,12 @@ class MinimaxTree:
         good_moves = []
         for i, child in enumerate(node.children):
             if best_score == child.score:
-                good_moves.append([child.move, child.score, child.score_avg])
+                good_moves.append([child.move, child.score])
 
-        print(good_moves)
-        for child in node.children:
-            print(child.move, child.score, child.score_avg, end=', ')
-        print()
+        # print(good_moves)
+        # for child in node.children:
+        #     print(child.move, child.score, child.score_avg, end=', ')
+        # print()
 
         return random.choice(good_moves)
 

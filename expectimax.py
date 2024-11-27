@@ -37,7 +37,7 @@ class ExpectimaxTree:
             child_node.move = move
             node.children.append(child_node)
             self.build_tree(child_node, depth - 1, not maximizing_player)
-            game_current.delete_move(move)
+            game_current.delete_move()
 
             if maximizing_player:
                 if child_node.score > best_score:
@@ -66,10 +66,10 @@ class ExpectimaxTree:
             if best_score == child.score:
                 good_moves.append([child.move, child.score, child.score_avg])
 
-        print(good_moves)
-        for child in node.children:
-            print(child.move, child.score, child.score_avg, end=', ')
-        print()
+        # print(good_moves)
+        # for child in node.children:
+        #     print(child.move, child.score, child.score_avg, end=', ')
+        # print()
 
         return random.choice(good_moves)
 

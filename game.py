@@ -11,6 +11,9 @@ class Game2048:
         self.prev_score = None
         self.is_game_over = False
 
+        self.last_move = 0
+        self.number_identical_last_moves = 0
+
         self.grid_size = grid_size
         self.grid = [[0] * self.grid_size for _ in range(self.grid_size)]
         self.score = 0
@@ -27,6 +30,12 @@ class Game2048:
     def apply_move(self, direction):
         if direction not in ['Up', 'Down', 'Left', 'Right']:
             return
+
+        if self.last_move == direction:
+            self.number_identical_last_moves += 1
+        else:
+            self.number_identical_last_moves = 0
+        self.last_move = direction
 
         self.prev_grid = copy.deepcopy(self.grid)
         self.prev_score = self.score
@@ -78,18 +87,21 @@ class Game2048:
         return True
 
     def get_legal_moves(self):
-        now_grid = copy.deepcopy(self.grid)
+        now_grid = self.grid.copy()
         current_score = self.score
 
         legal_moves = []
 
-        for it in ['Up', 'Down', 'Left', 'Right']:
+        for it in ['Left', 'Down', 'Right', 'Up']:
             self.grid = now_grid
             self.move_tiles(it)
+
             if self.grid != now_grid:
                 self.grid = now_grid
                 self.score = current_score
                 legal_moves.append(it)
+            else:
+                continue
 
         self.score = current_score
         return legal_moves
@@ -116,6 +128,7 @@ class Game2048:
             self.merge_tiles()
             self.reverse_rows()
         elif direction == 'Right':
+            self.grid = [row[:] for row in self.grid]
             self.merge_tiles()
 
     def merge_tiles(self):
@@ -169,12 +182,12 @@ class Game2048:
 
         for i in range(4):
             for j in range(3):
-                if self.grid[i * 4 + j + 1] > self.grid[i * 4 + j]:
+                if self.grid[i][j + 1] != self.grid[i][j]:
                     mon_score += 1
 
         for j in range(4):
             for i in range(3):
-                if self.grid[(i + 1) * 4 + j] > self.grid[i * 4 + j]:
+                if self.grid[i + 1][j] != self.grid[i][j]:
                     mon_score += 1
 
         return mon_score
@@ -190,27 +203,39 @@ class Game2048:
     def get_smoothness(self):
         smoothness = 0
 
-        for i, val in self.grid:
-            val = math.log2(val)
+        for i in range(4):
+            for j in range(4):
+                val = self.grid[i][j] if self.grid[i][j] != 0 else 1
+                val = math.log2(val)
 
-            neighbors_positions = [i - 4, i - 1, i + 1, i + 4]
+                potential_neighbors = [[i - 1, j], [i + 1, j], [i, j - 1], [i, j + 1]]
 
-            for potential_neighbor in neighbors_positions:
-                if potential_neighbor < 0:
-                    continue
-                neighbor_val = math.log2(self.grid[potential_neighbor])
-
-                smoothness -= abs(val - neighbor_val)
+                for x, y in potential_neighbors:
+                    if x < 0 or x > 3 or y < 0 or y > 3:
+                        continue
+                    neighbor_val = math.log2(self.grid[x][y]) if self.grid[x][y] != 0 else 1
+                    smoothness -= abs(val - neighbor_val)
 
         return smoothness
 
+    def get_sum_elements(self):
+        return np.sum(np.array(self.grid))
 
     def evaluate(self):
-        mon_score = self.get_monotonicity()
+        monotonicity_score = self.get_monotonicity()
         empty_cells = self.get_number_empty_cells()
-        smoothness = self.get_smoothness()
+        smoothness_score = self.get_smoothness()
+        sum_elems = self.get_sum_elements()
 
+        monotonicity_weight = 1.0
+        emptiness_weight = 2.8
+        smoothness_weight = 0.2
+        sum_weight = 0.1
+        repeatability_weight = 100
 
+        return (monotonicity_score * monotonicity_weight + empty_cells * emptiness_weight +
+                smoothness_score * smoothness_weight + math.log2(self.score + 1) + sum_weight * sum_elems -
+                repeatability_weight * self.number_identical_last_moves)
 
     @classmethod
     def simulate_random_game(cls, game):
