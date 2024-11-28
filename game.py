@@ -27,7 +27,7 @@ class Game2048:
             row, col = random.choice(empty_cells)
             self.grid[row][col] = 2 if random.random() < 0.9 else 4
 
-    def apply_move(self, direction):
+    def apply_move(self, direction, place_random_tile=True):
         if direction not in ['Up', 'Down', 'Left', 'Right']:
             return
 
@@ -42,7 +42,8 @@ class Game2048:
         self.move_tiles(direction)
 
         if self.grid != self.prev_grid:
-            self.place_random_tile()
+            if place_random_tile:
+                self.place_random_tile()
             was_positions_changed = True
         else:
             self.score = self.prev_score
@@ -192,11 +193,13 @@ class Game2048:
 
         return mon_score
 
-    def get_number_empty_cells(self):
-        empty_cells = 0
-        for i in self.grid:
-            if i == 0:
-                empty_cells += 1
+    def get_empty_cells(self):
+        empty_cells = []
+
+        for i in range(self.grid_size):
+            for j in range(self.grid_size):
+                if self.grid[i][j] == 0:
+                    empty_cells.append((i, j))
 
         return empty_cells
 
@@ -223,7 +226,7 @@ class Game2048:
 
     def evaluate(self):
         monotonicity_score = self.get_monotonicity()
-        empty_cells = self.get_number_empty_cells()
+        empty_cells = len(self.get_empty_cells())
         smoothness_score = self.get_smoothness()
         sum_elems = self.get_sum_elements()
 
@@ -233,9 +236,12 @@ class Game2048:
         sum_weight = 0.1
         repeatability_weight = 100
 
+        # return (monotonicity_score * monotonicity_weight + empty_cells * emptiness_weight +
+        #         smoothness_score * smoothness_weight + math.log2(self.score + 1) + sum_weight * sum_elems -
+        #         repeatability_weight * self.number_identical_last_moves)
+
         return (monotonicity_score * monotonicity_weight + empty_cells * emptiness_weight +
-                smoothness_score * smoothness_weight + math.log2(self.score + 1) + sum_weight * sum_elems -
-                repeatability_weight * self.number_identical_last_moves)
+                smoothness_score * smoothness_weight - repeatability_weight * self.number_identical_last_moves)
 
     @classmethod
     def simulate_random_game(cls, game):

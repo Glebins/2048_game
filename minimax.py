@@ -6,6 +6,7 @@ import numpy as np
 class MinimaxNode:
     def __init__(self, state):
         self.state = state
+        self.prob = None
         self.move = None
         self.score = None
         self.score_avg = None
@@ -32,20 +33,51 @@ class MinimaxTree:
             return
 
         best_score = float('-inf') if maximizing_player else float('inf')
-        for move in legal_moves:
-            game_current.apply_move(move)
-            child_node = MinimaxNode(game_current.get_state().copy())
-            child_node.move = move
-            node.children.append(child_node)
-            self.build_tree(child_node, depth - 1, not maximizing_player)
-            game_current.delete_move()
 
-            if maximizing_player:
+        if maximizing_player:
+            for move in legal_moves:
+                game_current.apply_move(move, place_random_tile=False)
+                child_node = MinimaxNode(game_current.get_state().copy())
+                child_node.move = move
+                node.children.append(child_node)
+                self.build_tree(child_node, depth - 1, not maximizing_player)
+                game_current.delete_move()
+
                 if child_node.score > best_score:
                     best_score = child_node.score
-            else:
+            # best_score = max(child.score for child in node.children)
+
+        else:
+            empty_cells = game_current.get_empty_cells()
+
+            for (i, j) in empty_cells:
+                for tile, prob in [(2, 0.9), (4, 0.1)]:
+                    game_current.grid[i][j] = tile
+                    child_node = MinimaxNode(game_current.get_state().copy())
+                    child_node.prob = prob
+                    node.children.append(child_node)
+                    self.build_tree(child_node, depth - 1, not maximizing_player)
+                    game_current.grid[i][j] = 0
+
                 if child_node.score < best_score:
                     best_score = child_node.score
+            # best_score = min(child.score for child in node.children)
+
+        # best_score = float('-inf') if maximizing_player else float('inf')
+        # for move in legal_moves:
+        #     game_current.apply_move(move, place_random_tile=False)
+        #     child_node = MinimaxNode(game_current.get_state().copy())
+        #     child_node.move = move
+        #     node.children.append(child_node)
+        #     self.build_tree(child_node, depth - 1, not maximizing_player)
+        #     game_current.delete_move()
+        #
+        #     if maximizing_player:
+        #         if child_node.score > best_score:
+        #             best_score = child_node.score
+        #     else:
+        #         if child_node.score < best_score:
+        #             best_score = child_node.score
 
         node.score = best_score
         # node.score_avg = round(np.array([child.score for child in node.children]).mean(), 3)
@@ -53,7 +85,7 @@ class MinimaxTree:
     def get_best_move(self, node: MinimaxNode, is_maximizing_player):
         node = self.root if node is None else node
 
-        if node.children == '':
+        if not node.children:
             return -1
 
         if is_maximizing_player:
